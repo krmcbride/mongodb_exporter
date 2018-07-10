@@ -1,0 +1,30 @@
+version: 2
+jobs:
+  build:
+    docker: 
+      - image: 'krmcbride/docker@sha256:8e99a790c9bfde7ca2d3d77fca42df8d7ecb343d496454ac23aaa29491b6cc7d'
+    working_directory: /usr/src/app
+    environment:
+      - BASH_ENV: /usr/src/app/.circleci/functions.bash
+    steps:
+      - checkout
+      - setup_remote_docker: { version: '17.06.1-ce', reusable: true }
+      - run:
+          name: Log into the docker registry
+          command: circleci_docker_login
+      - run:
+          name: Start external services
+          command: circleci_services_up
+      - run:
+          name: Build the image
+          command: circleci_docker_build
+      - deploy:
+          name: Push the image maybe
+          command: circleci_docker_push_maybe
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters: { tags: { only: '/.*/' } } 
+
